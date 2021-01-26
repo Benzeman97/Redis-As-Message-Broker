@@ -32,7 +32,8 @@ public class ProductService {
         return productDAO.saveProduct(product);
     }
 
-    @Cacheable(key = "#productId",value = "Product")
+    //If the price is less than 25000 then no need to store in the DB
+    @Cacheable(key = "#productId",value = "Product",unless = "#result.price<25000")
     public Product getProduct(int productId)
     {
         return productDAO.findProduct(productId).orElseThrow(()->new DataNotFoundException(String.format("Product Not Found With %d",productId)));
@@ -46,7 +47,7 @@ public class ProductService {
         });
     }
 
-    @CachePut(key="#product.getProductId",value = "Product")
+    @CachePut(key="#product.productId",value = "Product")
     public Product updateProduct(Product product)
     {
        return productDAO.updateProduct(product).orElseThrow(()->new DataNotFoundException(String.format("Product is not found with %d",product.getProductId())));
