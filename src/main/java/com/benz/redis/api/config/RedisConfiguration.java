@@ -15,11 +15,19 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 public class RedisConfiguration {
 
     @Bean(name = "productConfig")
-    public RedisTemplate<String, Product> getProductConfig()
+    public RedisTemplate<String, Product> getProductConfig(JedisConnectionFactory jedisConnectionFactory)
     {
         RedisTemplate<String,Product> redisTemplate=new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(jedisConnectionFactory());
+        redisTemplate.setConnectionFactory(jedisConnectionFactory);
         redisTemplate.setValueSerializer(jackson2JsonRedisSerializer());
+        return redisTemplate;
+    }
+
+    @Bean(name = "redisTemplate")
+    public RedisTemplate<String,Object> redisTemplate(JedisConnectionFactory jedisConnectionFactory)
+    {
+        RedisTemplate<String,Object> redisTemplate=new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(jedisConnectionFactory);
         return redisTemplate;
     }
 
@@ -34,8 +42,9 @@ public class RedisConfiguration {
         return new Jackson2JsonRedisSerializer<Product>(Product.class);
     }
 
-    private JedisConnectionFactory jedisConnectionFactory()
+    @Bean
+    public JedisConnectionFactory jedisConnectionFactory(EnvironmentConfig env)
     {
-        return new JedisConnectionFactory(new RedisStandaloneConfiguration("127.0.0.1",6379));
+        return new JedisConnectionFactory(new RedisStandaloneConfiguration(env.getHost(),env.getPort()));
     }
 }

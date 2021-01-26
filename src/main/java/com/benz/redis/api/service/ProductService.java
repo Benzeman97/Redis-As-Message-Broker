@@ -6,24 +6,20 @@ import com.benz.redis.api.model.Product;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.stereotype.Service;
+
 import java.util.Map;
 
 @Service
 public class ProductService {
 
     private ProductDAO productDAO;
-    private RedisTemplate<String, Product> redisTemplate;
-    private ChannelTopic channelTopic;
-    final private static String HASH_KEY="Product";
+    private MessageService messageService;
 
-    public ProductService(ProductDAO productDAO,RedisTemplate<String,Product> redisTemplate,ChannelTopic channelTopic)
+    public ProductService(ProductDAO productDAO,MessageService messageService)
     {
        this.productDAO=productDAO;
-       this.redisTemplate=redisTemplate;
-       this.channelTopic=channelTopic;
+       this.messageService=messageService;
     }
 
     @CachePut(key = "#product.productId",value = "Product")
@@ -60,5 +56,11 @@ public class ProductService {
          productDAO.deleteProduct(productId);
         else
             throw new Exception(String.format("Product is not found %d",productId));
+    }
+
+    public void sendProduct(int productId)
+    {
+        Product product=getProduct(productId);
+        messageService.sendProduct(product);
     }
 }
